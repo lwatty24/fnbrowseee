@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo, lazy, Suspense } from 'react';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Sparkles, Crown, Sword, Shield, Music, Image, Clock, X, Brush } from 'lucide-react';
@@ -33,7 +33,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-const ErrorFallback = ({ 
+const ErrorFallback = memo(({ 
   error, 
   resetErrorBoundary,
   onRetry
@@ -56,7 +56,9 @@ const ErrorFallback = ({
       Try again
     </Button>
   </div>
-);
+));
+
+const DialogContent = lazy(() => import('./components/DialogContent'));
 
 function App() {
   const [cosmetics, setCosmetics] = useState<Cosmetic[]>([]);
@@ -241,7 +243,7 @@ function App() {
     }
   };
 
-  const handleRandomItem = () => {
+  const handleRandomItem = useCallback(() => {
     if (filteredCosmetics.length === 0) return;
     
     setIsRandomizing(true);
@@ -290,7 +292,7 @@ function App() {
     };
 
     shuffle();
-  };
+  }, [filteredCosmetics, setIsRandomizing, setSelectedCosmetic, setIsRandomDialogOpen, toast]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -328,10 +330,10 @@ function App() {
     inputElement.focus();
   }
 
-  const handleSetItemClick = (cosmetic: Cosmetic) => {
+  const handleSetItemClick = useCallback((cosmetic: Cosmetic) => {
     setSelectedCosmetic(cosmetic);
     setIsRandomDialogOpen(true);
-  };
+  }, [setSelectedCosmetic, setIsRandomDialogOpen]);
 
   return (
     <ErrorBoundary 
@@ -573,91 +575,13 @@ function App() {
       )}
       {selectedCosmetic && (
         <Dialog open={isRandomDialogOpen} onOpenChange={setIsRandomDialogOpen}>
-          <DialogContent className={cn(
-            "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-            "w-[calc(100vw-96px)] max-w-6xl",
-            "h-fit max-h-[calc(100vh-96px)]",
-            "bg-black/40 backdrop-blur-xl",
-            "shadow-[0_0_50px_-12px] shadow-black",
-            "border border-white/[0.02]",
-            "after:absolute after:inset-0 after:rounded-lg after:bg-gradient-to-br",
-            "after:from-white/[0.08] after:to-transparent after:pointer-events-none"
-          )}>
-            <div className="relative p-8">
-              {/* Content Container */}
-              <div className="relative z-10 space-y-8">
-                <DialogHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1.5">
-                      <DialogTitle className="text-2xl font-medium text-white/90">
-                        {selectedCosmetic?.name}
-                      </DialogTitle>
-                      <DialogDescription className="text-white/70">
-                        {selectedCosmetic?.description}
-                      </DialogDescription>
-                    </div>
-                    <DialogClose className="rounded-full p-2 bg-black/20 hover:bg-black/40 transition-colors">
-                      <X className="h-5 w-5 text-white/70" />
-                    </DialogClose>
-                  </div>
-                </DialogHeader>
-
-                {/* Content Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Image Section */}
-                  <div className="relative aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-black/30 to-black/10 backdrop-blur-sm border border-white/[0.02]">
-                    <img
-                      src={selectedCosmetic.images.featured || selectedCosmetic.images.icon}
-                      alt={selectedCosmetic.name}
-                      className="w-full h-full object-contain p-8"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-
-                  {/* Info Section */}
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <InfoItem 
-                        label="Rarity" 
-                        value={selectedCosmetic.rarity.value} 
-                        className="bg-black/20 backdrop-blur-sm border-white/[0.02]"
-                      />
-                      <InfoItem 
-                        label="Type" 
-                        value={selectedCosmetic.type.value} 
-                        className="bg-black/20 backdrop-blur-sm border-white/[0.02]"
-                      />
-                    </div>
-
-                    {selectedCosmetic.introduction && (
-                      <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/[0.02]">
-                        <h4 className="text-sm font-medium text-white/70 mb-1">Introduction</h4>
-                        <p className="text-sm text-white/90">{selectedCosmetic.introduction.text}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Find Next Button */}
-                <div className="absolute bottom-4 right-4">
-                  <Button
-                    onClick={handleRandomItem}
-                    disabled={isRandomizing}
-                    className="relative group px-4 py-2 rounded-lg bg-black/20 hover:bg-black/40 transition-colors border border-white/5"
-                  >
-                    <div className="relative flex items-center space-x-2 text-white/70">
-                      <Shuffle className={cn(
-                        "w-4 h-4 transition-all duration-500",
-                        isRandomizing ? "animate-spin" : "group-hover:rotate-180"
-                      )} />
-                      <span className="text-sm font-medium">Find Next</span>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </DialogContent>
+          <Suspense fallback={<LoadingFallback />}>
+            <DialogContent 
+              cosmetic={selectedCosmetic} 
+              onRandomize={handleRandomItem}
+              isRandomizing={isRandomizing}
+            />
+          </Suspense>
         </Dialog>
       )}
       <Toaster />

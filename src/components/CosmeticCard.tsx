@@ -127,16 +127,14 @@ export default memo(function CosmeticCard({ cosmetic, allItems = [] }: CosmeticP
             <div className="relative flex-1 flex items-center justify-center h-full">
               <div className="absolute inset-0 bg-gradient-radial from-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
               <img
-                src={cosmetic.images.featured || cosmetic.images.icon}
+                src={cosmetic.images.icon}
                 alt={cosmetic.name}
-                className="absolute inset-0 w-full h-full object-cover transform transition-all duration-500 group-hover:scale-110 group-hover:-rotate-2"
                 loading="lazy"
                 decoding="async"
-                onContextMenu={(e) => e.preventDefault()}
-                draggable="false"
+                className="absolute inset-0 w-full h-full object-cover transform transition-all duration-500 group-hover:scale-110 group-hover:-rotate-2"
                 onError={(e) => {
-                  const img = e.target as HTMLImageElement;
-                  img.src = '/placeholder.png';
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/placeholder.png';
                 }}
               />
             </div>

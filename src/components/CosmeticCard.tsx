@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { X, ImageOff, Copy, Check, Download } from 'lucide-react';
+import { X, Copy, Check, Download } from 'lucide-react';
 import { useState, useCallback, useMemo, memo } from 'react';
 import { Cosmetic } from '@/types';
 import { SetDialog } from './SetDialog';
@@ -93,13 +93,13 @@ export default memo(function CosmeticCard({ cosmetic, allItems = [] }: CosmeticP
     }
   };
 
-  const handleSetItemClick = (item: Cosmetic) => {
-    setSelectedItem(item);
+  const handleSetItemClick = (cosmetic: Cosmetic) => {
+    setSelectedItem(cosmetic);
     setIsSetDialogOpen(false);
     // Force a re-render of the dialog content
     const dialogContent = document.querySelector('[role="dialog"]');
     if (dialogContent) {
-      dialogContent.setAttribute('data-key', item.id);
+      dialogContent.setAttribute('data-key', cosmetic.id);
     }
   };
 
@@ -444,14 +444,3 @@ export default memo(function CosmeticCard({ cosmetic, allItems = [] }: CosmeticP
   );
 }, (prevProps, nextProps) => prevProps.cosmetic.id === nextProps.cosmetic.id);
 
-// Add this CSS to your global styles
-const styles = `
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-  }
-  
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-`;

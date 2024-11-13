@@ -35,10 +35,12 @@ const LoadingFallback = () => (
 
 const ErrorFallback = ({ 
   error, 
-  resetErrorBoundary 
+  resetErrorBoundary,
+  onRetry
 }: { 
   error: Error; 
   resetErrorBoundary: () => void;
+  onRetry: (signal: AbortSignal) => void;
 }) => (
   <div className="text-center p-8 bg-zinc-800/50 rounded-2xl backdrop-blur-xl">
     <h2 className="text-xl font-semibold mb-2 text-zinc-100">Something went wrong</h2>
@@ -47,7 +49,7 @@ const ErrorFallback = ({
       onClick={() => {
         resetErrorBoundary();
         const controller = new AbortController();
-        fetchCosmetics(controller.signal, setLoading, setError, setCosmetics);
+        onRetry(controller.signal);
       }}
       className="bg-purple-500 hover:bg-purple-600 text-white"
     >
@@ -55,43 +57,6 @@ const ErrorFallback = ({
     </Button>
   </div>
 );
-
-const fetchCosmetics = async (signal: AbortSignal, setLoading: Function, setError: Function, setCosmetics: Function) => {
-  try {
-    setLoading(true);
-    setError(null);
-    
-    const response = await fetch(
-      'https://fortnite-api.com/v2/cosmetics/br?language=en',
-      { 
-        signal,
-        headers: {
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
-        }
-      }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (data.data) {
-      setCosmetics(data.data);
-      setLoading(false);
-    } else {
-      throw new Error('No data received from API');
-    }
-  } catch (error: any) {
-    if (!signal.aborted) {
-      console.error('Fetch error:', error);
-      setError(error.message || 'Failed to fetch cosmetics');
-      setLoading(false);
-    }
-  }
-};
 
 function App() {
   const [cosmetics, setCosmetics] = useState<Cosmetic[]>([]);
@@ -136,7 +101,7 @@ function App() {
     const fetchData = async () => {
       try {
         if (!isMounted) return;
-        await fetchCosmetics(controller.signal, setLoading, setError, setCosmetics);
+        await fetchCosmetics(controller.signal);
       } catch (error) {
         console.error('Fetch failed:', error);
       }
@@ -169,7 +134,8 @@ function App() {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === '/' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        document.querySelector('input[type="text"]')?.focus?.();
+        const inputElement = document.querySelector('input[type="text"]') as HTMLInputElement | null;
+        inputElement?.focus();
       }
     };
     
@@ -238,30 +204,41 @@ function App() {
     { value: 'chapter 5', label: 'Chapter 5', color: 'bg-emerald-500' },
   ];
 
-  const rarityColors = {
-    common: 'bg-gray-500',
-    uncommon: 'bg-green-500',
-    rare: 'bg-blue-500',
-    epic: 'bg-purple-500',
-    legendary: 'bg-orange-500',
-    mythic: 'bg-yellow-500',
-    gaminglegends: 'bg-indigo-500',
-    marvel: 'bg-red-500',
-    starwars: 'bg-yellow-400',
-    dc: 'bg-blue-600',
-    dark: 'bg-purple-900',
-    frozen: 'bg-cyan-400',
-    lava: 'bg-orange-600',
-    shadow: 'bg-zinc-800',
-    icon: 'bg-teal-400',
-    default: 'bg-gray-500',
-  };
-
-  const handleViewItem = (cosmetic: Cosmetic) => {
-    setRecentlyViewed(prev => {
-      const filtered = prev.filter(item => item.id !== cosmetic.id);
-      return [cosmetic, ...filtered].slice(0, 10);
-    });
+  const fetchCosmetics = async (signal: AbortSignal) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(
+        'https://fortnite-api.com/v2/cosmetics/br?language=en',
+        { 
+          signal,
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        
+      }
+      
+      const data = await response.json();
+      
+      if (data.data) {
+        setCosmetics(data.data);
+        setLoading(false);
+      } else {
+        throw new Error('No data received from API');
+      }
+    } catch (error: any) {
+      if (!signal.aborted) {
+        console.error('Fetch error:', error);
+        setError(error.message || 'Failed to fetch cosmetics');
+        setLoading(false);
+      }
+    }
   };
 
   const handleRandomItem = () => {
@@ -302,7 +279,7 @@ function App() {
           title: randomItem.name,
           description: randomItem.description,
           action: (
-            <ToastAction altText="View item" onClick={() => handleViewItem(randomItem)}>
+            <ToastAction altText="View item" onClick={() => handleSetItemClick(randomItem)}>
               View
             </ToastAction>
           ),
@@ -338,26 +315,6 @@ function App() {
     localStorage.removeItem('recentSearches');
   };
 
-  const showRecentSearches = () => {
-    const dropdown = document.getElementById('recent-searches');
-    if (dropdown) {
-      dropdown.classList.remove('hidden');
-      dropdown.classList.add('opacity-100', 'scale-100');
-      dropdown.classList.remove('opacity-0', 'scale-95');
-    }
-  };
-
-  const hideRecentSearches = () => {
-    const dropdown = document.getElementById('recent-searches');
-    if (dropdown) {
-      dropdown.classList.add('opacity-0', 'scale-95');
-      dropdown.classList.remove('opacity-100', 'scale-100');
-      setTimeout(() => {
-        dropdown.classList.add('hidden');
-      }, 200);
-    }
-  };
-
   const deleteRecentSearch = (searchToDelete: string) => {
     setRecentSearches(prev => {
       const updated = prev.filter(search => search !== searchToDelete);
@@ -366,8 +323,26 @@ function App() {
     });
   };
 
+  const inputElement = document.querySelector('input[type="text"]') as HTMLInputElement | null;
+  if (inputElement) {
+    inputElement.focus();
+  }
+
+  const handleSetItemClick = (cosmetic: Cosmetic) => {
+    setSelectedCosmetic(cosmetic);
+    setIsRandomDialogOpen(true);
+  };
+
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback}>
+    <ErrorBoundary 
+      FallbackComponent={({ error, resetErrorBoundary }) => (
+        <ErrorFallback 
+          error={error} 
+          resetErrorBoundary={resetErrorBoundary} 
+          onRetry={fetchCosmetics} 
+        />
+      )}
+    >
       <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white">
         <div className="container mx-auto py-8 px-4">
           {/* Header Section */}
@@ -539,16 +514,26 @@ function App() {
             </div>
 
             <TabsContent value={activeTab} className="mt-6">
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
+              <ErrorBoundary 
+                FallbackComponent={({ error, resetErrorBoundary }) => (
+                  <ErrorFallback 
+                    error={error} 
+                    resetErrorBoundary={resetErrorBoundary} 
+                    onRetry={fetchCosmetics} 
+                  />
+                )}
+              >
                 {loading ? (
                   <LoadingFallback />
                 ) : error ? (
-                  <ErrorFallback error={error} resetErrorBoundary={() => {
-                    setError(null);
-                    setLoading(true);
-                    const controller = new AbortController();
-                    fetchCosmetics(controller.signal, setLoading, setError, setCosmetics);
-                  }} />
+                  <ErrorFallback 
+                    error={new Error(error || 'Unknown error')} 
+                    resetErrorBoundary={() => {
+                      const controller = new AbortController();
+                      fetchCosmetics(controller.signal);
+                    }}
+                    onRetry={fetchCosmetics}
+                  />
                 ) : (
                   <div className="min-h-screen">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 p-6">

@@ -1,3 +1,5 @@
+import type { Cosmetic } from '@/types';
+
 export async function fetchSetItems(setName: string): Promise<Cosmetic[]> {
   try {
     const response = await fetch(`https://fortnite-api.com/v2/cosmetics/br/search/all?set=${encodeURIComponent(setName)}`);

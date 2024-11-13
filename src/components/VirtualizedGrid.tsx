@@ -1,22 +1,16 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import { Cosmetic } from '@/types';
 
 interface VirtualizedGridProps {
-  items: Cosmetic[];
-  renderItem: (item: Cosmetic) => React.ReactNode;
-  columnWidth?: number;
-  rowHeight?: number;
-  gap?: number;
+  items: any[];
+  renderItem: (item: any) => React.ReactNode;
+  rowHeight: number;
 }
 
-export function VirtualizedGrid<T>({ 
+export function VirtualizedGrid({ 
   items, 
   renderItem, 
-  columnWidth, 
-  rowHeight,
-  gap 
+  rowHeight 
 }: VirtualizedGridProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const rowCount = Math.ceil(items.length / 6);

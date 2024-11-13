@@ -22,6 +22,7 @@ import { MarvelParticles } from './MarvelParticles';
 import { DCParticles } from './DCParticles';
 import { StarWarsParticles } from './StarWarsParticles';
 import { IconParticles } from './IconParticles';
+import { InfoItem } from '@/components/InfoItem';
 
 const formatRarityLabel = (rarity: string) => {
   return rarity.charAt(0).toUpperCase() + rarity.slice(1).toLowerCase();
@@ -50,26 +51,6 @@ const rarityColors = {
   icon: 'bg-teal-400',
   default: 'bg-gray-500',
 };
-
-const InfoItem = ({ label, value, className, onClick }: { 
-  label: string; 
-  value: string; 
-  className?: string;
-  onClick?: () => void;
-}) => (
-  <div 
-    className={cn(
-      "group space-y-1 rounded-xl bg-black/20 backdrop-blur-md p-3 border border-white/[0.05]",
-      "transition-all duration-300",
-      onClick && "cursor-pointer hover:bg-black/30 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20",
-      className
-    )}
-    onClick={onClick}
-  >
-    <h4 className="text-sm font-medium text-white/60 group-hover:text-white/70 transition-colors">{label}</h4>
-    <p className="text-sm text-white/90">{value}</p>
-  </div>
-);
 
 const handleDownload = async (imageUrl: string, itemName: string) => {
   try {
@@ -146,12 +127,11 @@ export default memo(function CosmeticCard({ cosmetic, allItems = [] }: CosmeticP
             <div className="relative flex-1 flex items-center justify-center h-full">
               <div className="absolute inset-0 bg-gradient-radial from-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
               <img
-                src={cosmetic.images.icon}
+                src={cosmetic.images.featured || cosmetic.images.icon}
                 alt={cosmetic.name}
                 className="absolute inset-0 w-full h-full object-cover transform transition-all duration-500 group-hover:scale-110 group-hover:-rotate-2"
                 loading="lazy"
                 decoding="async"
-                fetchpriority="low"
                 onContextMenu={(e) => e.preventDefault()}
                 draggable="false"
                 onError={(e) => {

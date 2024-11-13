@@ -1,29 +1,30 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { Cosmetic } from '@/types';
 
-interface VirtualizedGridProps<T> {
-  items: T[];
-  renderItem: (item: T) => React.ReactNode;
-  columnCount: number;
-  itemHeight: number;
-  className?: string;
+interface VirtualizedGridProps {
+  items: Cosmetic[];
+  renderItem: (item: Cosmetic) => React.ReactNode;
+  columnWidth?: number;
+  rowHeight?: number;
+  gap?: number;
 }
 
 export function VirtualizedGrid<T>({ 
   items, 
   renderItem, 
-  columnCount, 
-  itemHeight,
-  className 
-}: VirtualizedGridProps<T>) {
+  columnWidth, 
+  rowHeight,
+  gap 
+}: VirtualizedGridProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const rowCount = Math.ceil(items.length / 6);
 
   const virtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => itemHeight + 16,
+    estimateSize: () => rowHeight + 16,
     overscan: 2,
   });
 
@@ -75,7 +76,7 @@ export function VirtualizedGrid<T>({
                 top: 0,
                 left: 0,
                 right: 0,
-                height: `${itemHeight}px`,
+                height: `${rowHeight}px`,
                 transform: `translateY(${virtualRow.start}px)`,
               }}
               className="grid grid-cols-6 gap-4"

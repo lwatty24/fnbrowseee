@@ -1,54 +1,29 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Sparkles, Crown, Sword, Shield, Music, Image, Clock, X, Brush } from 'lucide-react';
 import CosmeticCard from './components/CosmeticCard';
 import { cn } from '@/lib/utils';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Skeleton } from '@/components/ui/skeleton';
-import { VirtualizedGrid } from './components/VirtualizedGrid';
 import { Button } from '@/components/ui/button';
 import { LoadingTimeout } from './components/LoadingTimeout';
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ArrowUp } from 'lucide-react';
-import { AlertCircle } from 'lucide-react';
 import { Shuffle } from 'lucide-react';
-import { useInfiniteScroll } from './hooks/useInfiniteScroll';
-import { InfoItem } from './components/InfoItem';
 import { useToast } from '@/hooks/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import { ToastAction } from "@/components/ui/toast";
-
-type Cosmetic = {
-  id: string;
-  name: string;
-  description: string;
-  rarity: {
-    value: string;
-  };
-  type: {
-    value: string;
-  };
-  images: {
-    icon: string;
-    featured?: string;
-  };
-  introduction?: {
-    text: string;
-  };
-};
+import { useInfiniteScroll } from './hooks/useInfiniteScroll';
+import type { Cosmetic } from '@/types';
+import { InfoItem } from '@/components/InfoItem';
 
 const LoadingFallback = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -58,7 +33,13 @@ const LoadingFallback = () => (
   </div>
 );
 
-const ErrorFallback = ({ error, resetErrorBoundary }) => (
+const ErrorFallback = ({ 
+  error, 
+  resetErrorBoundary 
+}: { 
+  error: Error; 
+  resetErrorBoundary: () => void;
+}) => (
   <div className="text-center p-8 bg-zinc-800/50 rounded-2xl backdrop-blur-xl">
     <h2 className="text-xl font-semibold mb-2 text-zinc-100">Something went wrong</h2>
     <p className="text-zinc-400 mb-4">{error.message}</p>
@@ -121,15 +102,13 @@ function App() {
   const [activeRarity, setActiveRarity] = useState('all');
   const [activeSeason, setActiveSeason] = useState('all');
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [recentlyViewed, setRecentlyViewed] = useState<Cosmetic[]>([]);
-  const [retryCountdown, setRetryCountdown] = useState(15);
-  const [selectedCosmetic, setSelectedCosmetic] = useState<Cosmetic | null>(null);
-  const [isRandomDialogOpen, setIsRandomDialogOpen] = useState(false);
-  const [isRandomizing, setIsRandomizing] = useState(false);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const { toast } = useToast();
+  const [retryCountdown, setRetryCountdown] = useState(15);
+  const [isRandomizing, setIsRandomizing] = useState(false);
+  const [isRandomDialogOpen, setIsRandomDialogOpen] = useState(false);
+  const [selectedCosmetic, setSelectedCosmetic] = useState<Cosmetic | null>(null);
 
   const filteredCosmetics = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
@@ -190,7 +169,7 @@ function App() {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === '/' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        document.querySelector('input[type="text"]')?.focus();
+        document.querySelector('input[type="text"]')?.focus?.();
       }
     };
     
@@ -388,7 +367,7 @@ function App() {
   };
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
       <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white">
         <div className="container mx-auto py-8 px-4">
           {/* Header Section */}
